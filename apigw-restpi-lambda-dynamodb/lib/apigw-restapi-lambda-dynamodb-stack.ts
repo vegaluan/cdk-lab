@@ -6,9 +6,7 @@ import * as AwsLambda from "aws-cdk-lib/aws-lambda";
 import * as Path from "path";
 import {
   AttributeType,
-  BillingMode,
-  Table,
-  TableV2,
+  TableV2
 } from "aws-cdk-lib/aws-dynamodb";
 import { LogGroup } from "aws-cdk-lib/aws-logs";
 
@@ -26,7 +24,7 @@ export class ApiGwRestApiLambdaDynamodbStack extends Cdk.Stack {
     const lambdaBackend = new NodejsFunction(this, "LambdaCRUD", {
       runtime: AwsLambda.Runtime.NODEJS_LATEST,
       architecture: AwsLambda.Architecture.ARM_64, //Optimize cold start
-     // reservedConcurrentExecutions: 100, //evitar overhead nos serviços downstreams, porem dropa novas conexoes se o pool estiver no limite 
+      reservedConcurrentExecutions: 10, //evitar overhead nos serviços downstreams, porem dropa novas conexoes se o pool estiver no limite 
       handler: "handler",
       timeout: Cdk.Duration.seconds(300),
       entry: Path.join(__dirname, "../lambda/app.ts"),
@@ -56,6 +54,7 @@ export class ApiGwRestApiLambdaDynamodbStack extends Cdk.Stack {
         tracingEnabled: true,
         accessLogDestination: new ApiGw.LogGroupLogDestination(logGroup)
       },
+      cloudWatchRole: true
     });
 
     const apiGwResource = apiGw.root.addResource("users");
